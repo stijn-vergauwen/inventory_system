@@ -1,9 +1,9 @@
-// use crate::Category;
 use rand::Rng;
+use serde::{Deserialize, Serialize};
 
 use crate::await_user_input;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Item {
     name: String,
     quantity: u32,
