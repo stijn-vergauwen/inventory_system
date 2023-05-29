@@ -1,50 +1,90 @@
-use crate::items::{handle_create_new_item, Item};
-use std::fs;
+use items::delete_item_from_list;
+use serializer::{add_item_to_file, save_to_file};
+
+use crate::{
+    items::{create_new_item, update_amount_of_item, update_price_of_item, Item},
+    serializer::read_from_file,
+};
 use std::io::{self};
 
 mod items;
+mod serializer;
 
 // struct Category {
 //     name: String,
 // }
 
-const PATH_TO_INVENTORY: &str = "data/inventory.json";
-
 fn main() {
     loop {
         println!("Enter a number to select one of the following actions:");
 
-        let choices = vec!["Create item", "Show inventory", "Exit program"];
+        let choices = vec!["Show inventory", "Modify inventory", "Exit program"];
 
         match await_user_choice(&choices) {
-            1 => create_item(),
-            2 => read_items(),
+            1 => read_items(),
+            2 => handle_crud_action(),
             3 => break,
             _ => continue,
         }
     }
 }
 
+fn handle_crud_action() {
+    println!("Enter a number to select one of the following actions:");
+
+    let choices = vec![
+        "Add item",
+        "Remove item",
+        "Update item amount",
+        "Update item price",
+    ];
+
+    match await_user_choice(&choices) {
+        1 => create_item(),
+        2 => delete_item(),
+        3 => {
+            let mut items = read_from_file().expect("items should be read from file");
+            update_amount_of_item(&mut items);
+            match save_to_file(&items) {
+                Ok(_) => (),
+                Err(error) => println!("Something went wrong. {}", error),
+            }
+        }
+        4 => {
+            let mut items = read_from_file().expect("items should be read from file");
+            update_price_of_item(&mut items);
+            match save_to_file(&items) {
+                Ok(_) => (),
+                Err(error) => println!("Something went wrong. {}", error),
+            }
+        }
+        _ => (),
+    }
+}
+
+fn delete_item() {
+    let mut items: Vec<Item> = read_from_file().expect("items should be read from file");
+
+    delete_item_from_list(&mut items);
+
+    match save_to_file(&items) {
+        Ok(_) => (),
+        Err(error) => println!("Something went wrong. {}", error),
+    }
+}
+
 fn create_item() {
-    let item: Item = handle_create_new_item();
+    let created_item: Item = create_new_item();
 
-    println!("Created item has following data:");
-
-    println!("{:#?}", item);
-
-    let item_as_json = serde_json::to_string(&item).expect("Item should serialize to JSON");
-
-    fs::write(PATH_TO_INVENTORY, item_as_json.as_bytes()).expect("Item should be written to file");
+    match add_item_to_file(created_item) {
+        Ok(_) => println!("Item successfully added!"),
+        Err(error) => println!("Something went wrong. {}", error),
+    }
 }
 
 fn read_items() {
-    let file_contents =
-        fs::read_to_string(PATH_TO_INVENTORY).expect("file contents should be read");
-
-    let item: Item = serde_json::from_str(&file_contents)
-        .expect("File contents should be parsed to Item struct");
-
-    println!("{:#?}", item);
+    let items: Vec<Item> = read_from_file().expect("items should be read from file");
+    println!("{:#?}", items);
 }
 
 fn await_user_choice(choices: &Vec<&str>) -> u32 {

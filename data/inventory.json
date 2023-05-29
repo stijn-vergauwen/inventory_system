@@ -1,1 +1,14 @@
-{"name":"euh","quantity":0,"price":1234.0,"sku":24874}
+[
+    {
+        "name": "Sakura",
+        "quantity": 537,
+        "price": 5.95,
+        "sku": 66086
+    },
+    {
+        "name": "Rust learning book",
+        "quantity": 0,
+        "price": 270.0,
+        "sku": 50089
+    }
+]
